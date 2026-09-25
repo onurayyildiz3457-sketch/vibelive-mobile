@@ -26,25 +26,27 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 🛠️ Android Platform Dosyalarını Eşitle
+      - name: 🛠️ Android Yapılandırmasını Kusursuz Eşitle
         run: |
-          flutter create --org com.vibelive .
+          rm -rf android/
+          flutter create --org com.vibelive --project-name vibelive .
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="com.android.vending.BILLING" />' android/app/src/main/AndroidManifest.xml
           flutter pub get
-
-      - name: 📦 Google Play App Bundle (.aab) Derle
-        run: flutter build appbundle --release --no-tree-shake-icons
 
       - name: 📱 Doğrudan Telefona Yüklenebilir APK (.apk) Derle
         run: flutter build apk --release --no-tree-shake-icons
 
-      - name: ⬆️ Google Play .aab Dosyasını İndirilebilir Yap
-        uses: actions/upload-artifact@v4
-        with:
-          name: VibeLive-GooglePlay-AppBundle
-          path: build/app/outputs/bundle/release/app-release.aab
+      - name: 📦 Google Play App Bundle (.aab) Derle
+        run: flutter build appbundle --release --no-tree-shake-icons
 
       - name: ⬆️ Test İçin .apk Dosyasını İndirilebilir Yap
         uses: actions/upload-artifact@v4
         with:
           name: VibeLive-Test-APK
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: ⬆️ Google Play .aab Dosyasını İndirilebilir Yap
+        uses: actions/upload-artifact@v4
+        with:
+          name: VibeLive-GooglePlay-AppBundle
+          path: build/app/outputs/bundle/release/app-release.aab
