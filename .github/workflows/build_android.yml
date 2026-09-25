@@ -1,0 +1,50 @@
+name: Build VibeLive Android
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android App Bundle & APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Depoyu Klonla
+        uses: actions/checkout@v4
+
+      - name: ☕ Java 17 Kurulumu
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🎯 Flutter Kurulumu
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: 🛠️ Android Platform Dosyalarını Eşitle
+        run: |
+          flutter create --org com.vibelive .
+          flutter pub get
+
+      - name: 📦 Google Play App Bundle (.aab) Derle
+        run: flutter build appbundle --release --no-tree-shake-icons
+
+      - name: 📱 Doğrudan Telefona Yüklenebilir APK (.apk) Derle
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: ⬆️ Google Play .aab Dosyasını İndirilebilir Yap
+        uses: actions/upload-artifact@v4
+        with:
+          name: VibeLive-GooglePlay-AppBundle
+          path: build/app/outputs/bundle/release/app-release.aab
+
+      - name: ⬆️ Test İçin .apk Dosyasını İndirilebilir Yap
+        uses: actions/upload-artifact@v4
+        with:
+          name: VibeLive-Test-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
