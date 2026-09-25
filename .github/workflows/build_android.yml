@@ -26,11 +26,32 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 🛠️ Android Yapılandırmasını Kusursuz Eşitle
+      - name: 🛠️ Android Yapılandırmasını ve Paketleri Eşitle
         run: |
           rm -rf android/
+          cat << 'EOF' > pubspec.yaml
+          name: vibelive
+          description: "VibeLive - Mobil Canlı Yayın ve Dikey Video Platformu"
+          publish_to: "none"
+          version: 1.0.0+1
+
+          environment:
+            sdk: ">=3.2.0 <4.0.0"
+
+          dependencies:
+            flutter:
+              sdk: flutter
+            cupertino_icons: ^1.0.8
+            http: ^1.2.1
+            socket_io_client: ^3.0.0
+            google_fonts: ^6.2.1
+
+          flutter:
+            uses-material-design: true
+          EOF
           flutter create --org com.vibelive --project-name vibelive .
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="com.android.vending.BILLING" />' android/app/src/main/AndroidManifest.xml
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
+          sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
           flutter pub get
 
       - name: 📱 Doğrudan Telefona Yüklenebilir APK (.apk) Derle
