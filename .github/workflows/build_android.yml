@@ -26,29 +26,22 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 🛠️ Android Yapılandırmasını ve Paketleri Eşitle
+      - name: 🛠️ Renk ve Kod Hatalarını Otomatik Onar
         run: |
+          python3 -c "
+          for path, old, new in [
+              ('lib/screens/feed/fyp_screen.dart', 'Colors.black82', 'Colors.black87'),
+              ('lib/screens/live/live_room_screen.dart', 'Colors.black90', 'Colors.black87'),
+              ('lib/constants/app_colors.dart', 'static const Color secondary', 'static const Color gold = Color(0xFFFFD700);\n  static const Color secondary')
+          ]:
+              try:
+                  with open(path, 'r', encoding='utf-8') as f: c = f.read()
+                  with open(path, 'w', encoding='utf-8') as f: f.write(c.replace(old, new))
+                  print('Fixed:', path)
+              except Exception as e:
+                  print('Skip:', path, e)
+          "
           rm -rf android/
-          cat << 'EOF' > pubspec.yaml
-          name: vibelive
-          description: "VibeLive - Mobil Canlı Yayın ve Dikey Video Platformu"
-          publish_to: "none"
-          version: 1.0.0+1
-
-          environment:
-            sdk: ">=3.2.0 <4.0.0"
-
-          dependencies:
-            flutter:
-              sdk: flutter
-            cupertino_icons: ^1.0.8
-            http: ^1.2.1
-            socket_io_client: ^3.0.0
-            google_fonts: ^6.2.1
-
-          flutter:
-            uses-material-design: true
-          EOF
           flutter create --org com.vibelive --project-name vibelive .
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
           sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
