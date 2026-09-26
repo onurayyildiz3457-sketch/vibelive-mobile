@@ -28,49 +28,16 @@ jobs:
 
       - name: 🛠️ Kodları ve Android Platform Dosyalarını Eşitle
         run: |
-          # 1. En güncel kaynak kod paketini sunucudan çek ve lib klasörünü güncelle
           curl -s -L https://dramakolik.co/vibe-api/vibelive-mobile-app.zip -o app.zip
           unzip -o -q app.zip
           rm -f app.zip
-
-          # 2. Android platform yapılandırmasını sıfırdan temiz oluştur
           rm -rf android/
           flutter create --org com.vibelive --project-name vibelive .
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
           sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
-
-          # 3. AndroidManifest.xml içerisine İnternet, Medya İzinleri ve usesCleartextTraffic ekle
-          cat << 'EOF' > patch_manifest.py
-          manifest_path = 'android/app/src/main/AndroidManifest.xml'
-          with open(manifest_path, 'r', encoding='utf-8') as f:
-              m = f.read()
-
-          permissions = '''
-    <!-- VibeLive Network & Media Permissions -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="com.android.vending.BILLING" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-'''
-          if 'android.permission.INTERNET' not in m:
-              m = m.replace('<application', permissions + '\n    <application')
-
-          if 'android:usesCleartextTraffic' not in m:
-              m = m.replace('<application', '<application\n        android:usesCleartextTraffic="true"')
-
-          with open(manifest_path, 'w', encoding='utf-8') as f:
-              f.write(m)
-          print('AndroidManifest.xml permissions injected successfully!')
-          EOF
+          curl -s -L https://dramakolik.co/vibe-api/patch_manifest.py -o patch_manifest.py
           python3 patch_manifest.py
           rm -f patch_manifest.py
-
-          # 4. Bağımlılıkları indir
           flutter pub get
 
       - name: 📱 Doğrudan Telefona Yüklenebilir APK (.apk) Derle
